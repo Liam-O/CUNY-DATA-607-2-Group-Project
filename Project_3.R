@@ -1,4 +1,3 @@
-library(RCurl)
 library(XML)
 library(rvest)
 library(knitr)
@@ -65,16 +64,26 @@ text <- list()
 
 # runtime ~ 3-5 min. Errors may pop-up, but 'try' keeps it going.
 for (i in 1:nrow(linksdf)) {
-    #Sys.sleep(1)
+
+    # gets listed text
     try(
         text[[i]] <- read_html(GET(linksdf$JobLinks[i], add_headers('user-agent' = 'r'))) %>%
-            html_nodes(xpath = '//*[contains(concat( " ", @class, " " ), concat( " ", "bulleted", " " ))]|//ul') %>%
+            html_nodes(xpath = '//li') %>%
             html_text(trim = TRUE)
+    )
+
+    # If above try fails, the following will fail
+    # if no list type text -> try for bulleted.
+    try(
+        if (length(text[[i]]) == 0) {
+            text[[i]] <- read_html(GET(linksdf$JobLinks[i], add_headers('user-agent' = 'r'))) %>%
+                html_nodes(xpath = '//*[contains(concat( " ", @class, " " ), concat( " ", "bulleted", " " ))]') %>%
+                html_text(trim = TRUE)
+            }
     )
 }
 
 # ***--- To Do ---***
-# Clean 'text' lists, possibly perform a split on '\n' or other -> Talk to Dmitriy or Walt
 # Other list type objects, e,g, 'ul' -> use those as well?
 # Talk to @Slack#WordCount to finalize what type of output object they want
 # ...
