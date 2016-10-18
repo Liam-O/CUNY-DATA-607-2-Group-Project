@@ -2,17 +2,17 @@ con1 <- file("Week_7/scraped_data/scraped_samp.txt", "r")
 scraped_postings <- readLines(con1) 
 close(con1)
 
-
+#txt_unlist = unlist(text)
 
 library(rJava)
 library(RWeka)
-
 library(tm)
 library(SnowballC)
 samp = Corpus(DirSource("Week_7/scraped_data"), 
               readerControl = list(language = "en_EN", load = F))
 
-# Make lowercase & remove punctuation
+
+# Make lowercase 
 samp_clean = tm_map(samp, tolower)
 
 # Remove special characters and punctuation (code may have to be adjusted
@@ -41,15 +41,17 @@ xgramTokenizer = function(x) NGramTokenizer(x, Weka_control(min = 1, max = 4))
 # Calculate ngram freqs
 tdmatrix = TermDocumentMatrix(samp_clean, control = list(tokenize = xgramTokenizer))
 
-# ngram probabilities
+# ngram frequencies
 library(reshape2)
 
-m2 = as.matrix(tdmatrix)
-m2.df = data.frame(m2)
-m2.df$keywords = rownames(m2.df)
-m2.df.melted = melt(m2.df)
-colnames(m2.df.melted) = c("Keyword","Source","Freq")
+wdcnt = as.matrix(tdmatrix)
+wdcnt.df = data.frame(wdcnt)
+wdcnt.df$keywords = rownames(wdcnt.df)
+wdcnt.df.melted = melt(wdcnt.df)
+colnames(wdcnt.df.melted) = c("Keyword","Source","Freq")
 
+#Dump to csv file
+write.csv(wdcnt.df.melted, "wordcount.csv",row.names = F)
 
-require(wordcloud)
+library(wordcloud)
 wordcloud(samp_clean, max.words = 100, random.order = F, rot.per=0.0, colors=brewer.pal(3,"Dark2" ))
