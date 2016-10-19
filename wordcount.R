@@ -1,16 +1,16 @@
-con1 <- file("Week_7/scraped_data/scraped_samp.txt", "r")
-scraped_postings <- readLines(con1) 
-close(con1)
+if (!require('rJava')) install.packages('rJava')
+if (!require('RWeka')) install.packages('RWeka')
+if (!require('tm')) install.packages('tm')
+if (!require('SnowballC')) install.packages('SnowballC')
+if (!require('wordcloud')) install.packages('wordcloud')
+if (!require('reshape2')) install.packages('reshape2')
+if (!require('dplyr')) install.packages('dplyr')
 
-#txt_unlist = unlist(text)
 
-library(rJava)
-library(RWeka)
-library(tm)
-library(SnowballC)
-samp = Corpus(DirSource("Week_7/scraped_data"), 
+### Note - copy scrape output to the directory listed below
+
+samp = Corpus(DirSource("ScrapeOutput"), 
               readerControl = list(language = "en_EN", load = F))
-
 
 # Make lowercase 
 samp_clean = tm_map(samp, tolower)
@@ -27,6 +27,7 @@ for(j in seq(samp_clean))
 }  
 samp_clean = tm_map(samp_clean, PlainTextDocument)  
 samp_clean = tm_map(samp_clean, removePunctuation)
+samp_clean = tm_map(samp_clean, removeNumbers)  
 
 # Remove stopwords
 samp_clean = tm_map(samp_clean, removeWords, stopwords("english")) 
@@ -42,16 +43,15 @@ xgramTokenizer = function(x) NGramTokenizer(x, Weka_control(min = 1, max = 4))
 tdmatrix = TermDocumentMatrix(samp_clean, control = list(tokenize = xgramTokenizer))
 
 # ngram frequencies
-library(reshape2)
-
 wdcnt = as.matrix(tdmatrix)
 wdcnt.df = data.frame(wdcnt)
 wdcnt.df$keywords = rownames(wdcnt.df)
 wdcnt.df.melted = melt(wdcnt.df)
-colnames(wdcnt.df.melted) = c("Keyword","Source","Freq")
+wdcnt.df.melted = wdcnt.df.melted[, c(1,3)]
+colnames(wdcnt.df.melted) = c("Keyword","Freq")
+wdcnt.df.sub = top_n(arrange(wdcnt.df.melted, desc(Freq)), 1:1000)
 
 #Dump to csv file
-write.csv(wdcnt.df.melted, "wordcount.csv",row.names = F)
+write.csv(wdcnt.df.sub, "wordcount.csv",row.names = F)
 
-library(wordcloud)
 wordcloud(samp_clean, max.words = 100, random.order = F, rot.per=0.0, colors=brewer.pal(3,"Dark2" ))
