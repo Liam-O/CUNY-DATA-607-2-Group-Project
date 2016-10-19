@@ -46,7 +46,7 @@ drop procedure if exists sp_insert_transaction_by_id//
 
 create procedure sp_insert_transaction_by_id
 				(in s_id int(5))
-				 
+	#assumes skill_id exists, if not will insert nada, caller beware				 
 begin
 	set s_id = (select id from skill where id = s_id);
     
@@ -62,7 +62,7 @@ create procedure sp_insert_transaction_by_name
 				(in s_name varchar(100))			
 
 begin
-	#assumes skill_id exists, if not will blow up, caller beware
+	#assumes skill_id exists, if not will insert nada, caller beware
     declare s_id int(5);
     
     set s_id = (select id from skill where skill_name = s_name);
