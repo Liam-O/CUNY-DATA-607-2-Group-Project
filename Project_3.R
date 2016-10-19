@@ -14,17 +14,16 @@ linksdf <- data.frame(JobLinks=character(), stringsAsFactors=FALSE)
 scrape_indeed_links <- function(page_data){
 
     jobLinks <- page_data %>%
-        html_nodes(xpath='//*[contains(concat( " ", @class, " " ), concat( " ", "jobtitle", " " ))]//*[contains(concat( " ", @class, " " ), concat( " ", "turnstileLink", " " ))]
-                   ') %>%
+        html_nodes(
+            xpath = paste('//*[contains(concat( " ", @class, " " ), concat( " ", "jobtitle", " " ))]',
+                          '//*[contains(concat( " ", @class, " " ), concat( " ", "turnstileLink", " " ))]')) %>%
         html_attr("href")
-
-    #is.character(jobLinks)
-    #length(jobLinks)
 
     # looping to get links from all the pages of search result.
     for (i in c(1:length(jobLinks))){
         jobLinks[i] <- paste("http://www.indeed.com", jobLinks[i], sep = "")
     }
+
     # create a dataframe with all the links from a page
     linksdf <- data.frame(JobLinks=jobLinks, stringsAsFactors=FALSE)
     return(linksdf)
@@ -47,9 +46,8 @@ page_no = floor(page_no) #number of pages
 page_no_url = page_no*10 #for URL string
 
 # Loop through all the pages to get the job postings URL:
-#output <- vector(mode="character", length=page_no)
 for (i in c(1:page_no)){
-    Sys.sleep(1)
+    #Sys.sleep(1)
     page_no_url = (i-1)*10
     pageURL <- paste(theURL,"&start=",page_no_url, sep="")
     page_data <- read_html(pageURL)
@@ -57,33 +55,61 @@ for (i in c(1:page_no)){
 }
 
 
-text <- list()
+# Loop will extract list\bullet text from all urls.
+# runtime ~ 3-5 min.
 
-# Extracts list\bullet text from all urls -> A lot less clean-up and the content is more promising.
-# Pages that are not bulleted\listed are oddly formated or of a lower quality than most pages I browsed through.
-
-# runtime ~ 3-5 min. Errors may pop-up, but 'try' keeps it going.
+#To input scrape to list, comment out block bellow
+#**-- Start comment block here
+sink("scrapeOutput.txt", append = TRUE)
 for (i in 1:nrow(linksdf)) {
 
     # gets listed text
-    try(
-        text[[i]] <- read_html(GET(linksdf$JobLinks[i], add_headers('user-agent' = 'r'))) %>%
-            html_nodes(xpath = '//li') %>%
-            html_text(trim = TRUE)
-    )
-
-    # If above try fails, the following will fail
-    # if no list type text -> try for bulleted.
-    try(
-        if (length(text[[i]]) == 0) {
-            text[[i]] <- read_html(GET(linksdf$JobLinks[i], add_headers('user-agent' = 'r'))) %>%
-                html_nodes(xpath = '//*[contains(concat( " ", @class, " " ), concat( " ", "bulleted", " " ))]') %>%
-                html_text(trim = TRUE)
+    try({
+        lapply(
+            read_html(GET(linksdf$JobLinks[i], add_headers('user-agent' = 'r'))) %>%
+                html_nodes(xpath = '//li') %>%
+                html_text(trim = TRUE),
+            function(x) {
+                print(
+                    gsub("\\n|\\r|\\t", " ",
+                         gsub("^[[:space:]]|[[:space:]]{2,}|[[:space:]]$", "", x, perl = TRUE),
+                         perl = TRUE)
+                )
             }
-    )
-}
+        )
 
-# ***--- To Do ---***
-# Other list type objects, e,g, 'ul' -> use those as well?
-# Talk to @Slack#WordCount to finalize what type of output object they want
-# ...
+        #Try for bulleted text.
+        lapply(
+            read_html(GET(linksdf$JobLinks[i], add_headers('user-agent' = 'r'))) %>%
+                    html_nodes(xpath = '//*[contains(concat( " ", @class, " " ), concat( " ", "bulleted", " " ))]') %>%
+                    html_text(trim = TRUE),
+            function(x) {
+                print(
+                    gsub("\\n|\\r|\\t", " ",
+                         gsub("^[[:space:]]|[[:space:]]{2,}|[[:space:]]$", "", x, perl = TRUE),
+                         perl = TRUE)
+                )
+            }
+        )
+    })
+}
+sink()
+#**-- End comment block
+
+
+# #Uncomment bellow and comment loop above to read to list instead of .txt file
+# text <- list()
+# for (i in 1:length(linksdf)) {
+#
+#     # gets listed text
+#     try({
+#         text[[length(text) + 1L]] <- read_html(GET(linksdf$JobLinks[i], add_headers('user-agent' = 'r'))) %>%
+#         html_nodes(xpath = '//li') %>%
+#         html_text(trim = TRUE)
+#
+#     # try for bulleted if no lists.
+#     text[[length(text) + 1L]] <- read_html(GET(linksdf$JobLinks[i], add_headers('user-agent' = 'r'))) %>%
+#         html_nodes(xpath = '//*[contains(concat( " ", @class, " " ), concat( " ", "bulleted", " " ))]') %>%
+#         html_text(trim = TRUE)
+#     })
+# }
