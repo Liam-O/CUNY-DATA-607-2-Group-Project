@@ -1,14 +1,17 @@
 "Keyword","Freq"
 "mac",448
 "sql",332
+"r",329
 "python",324
 "hadoop",200
+"c",194
 "java",179
 "spark",143
 "hive",109
 "scala",106
 "sas",73
 "tableau",68
+"c++",64
 "mysql",51
 "nosql",43
 "pig",42
@@ -41,9 +44,6 @@
 "apache storm",2
 "inferential statistics",2
 "windows",2
-"r",0
-"c",0
-"c++",0
 "google charts",0
 "leaflet",0
 "datawrapper",0

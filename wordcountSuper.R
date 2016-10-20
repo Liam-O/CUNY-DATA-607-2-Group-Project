@@ -22,6 +22,9 @@ names(sup.skills)<-'skill.name'
 
 # init clean
 raw <- str_replace_all(raw,"[^[:graph:]]", " ") 
+raw <- str_replace_all(raw,"[R]\\W", "_r_")
+raw <- str_replace_all(raw,"[C]\\+\\+", "_cpp_")
+raw <- str_replace_all(raw,"[C]\\W", "_c_")
 raw <- tolower(raw)
 
 ## quick convert r, c++, c
