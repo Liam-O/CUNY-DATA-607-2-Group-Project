@@ -35,7 +35,7 @@ skill.freq<-sapply(sup.skills$skill.name,search,df=raw)
 skill.freq.df<-as.data.frame(cbind(names(skill.freq),skill.freq),stringsAsFactors = FALSE, make.row.name=FALSE)
 
 # order df 
-skill.freq.df %>%
+skill.freq.df <- skill.freq.df %>%
   mutate(skill.freq=as.numeric(skill.freq)) %>%
   arrange(desc(skill.freq)) 
 
