@@ -9,35 +9,34 @@ if (!require('dplyr')) install.packages('dplyr')
 
 ### Note - copy scrape output to the directory listed below
 
-samp = Corpus(DirSource("ScrapeOutput"), 
+samp = Corpus(DirSource("ScrapeOutput"),
               readerControl = list(language = "en_EN", load = F))
 
-# Make lowercase 
+# Make lowercase
 samp_clean = tm_map(samp, tolower)
 
 # Remove special characters and punctuation (code may have to be adjusted
 # depending on the input structure)
 
-for(j in seq(samp_clean))   
-{   
-  samp_clean[[j]] = iconv(samp_clean[[j]], to="ASCII", sub = "") 
-  samp_clean[[j]] <- gsub("/", " ", samp_clean[[j]])   
-  samp_clean[[j]] <- gsub("@", " ", samp_clean[[j]])   
-  samp_clean[[j]] <- gsub("\\|", " ", samp_clean[[j]])
-  samp_clean[[j]] <- gsub("[R]\\W", "_r_", samp_clean[[j]])
-  samp_clean[[j]] <- gsub("[C]\\+\\+", "_cpp_", samp_clean[[j]])
-  samp_clean[[j]] <- gsub("[C]\\W", "_c_", samp_clean[[j]])
-}  
-samp_clean = tm_map(samp_clean, PlainTextDocument)  
+for(j in seq(samp_clean))
+{
+  samp_clean[[j]] = iconv(samp_clean[[j]], to="ASCII", sub = "")
+  samp_clean[[j]] <- gsub("/|@|\\|", " ", samp_clean[[j]])
+  samp_clean[[j]] <- gsub("(?<!\w)R(?!=\w|&D)", "Rlanguage", samp_clean[[j]]) #R: Rlanguage
+  samp_clean[[j]] <- gsub("(?<!\w)C(?!\w|#|\+)", "Clanguage", samp_clean[[j]]) #C: Clanguage
+  samp_clean[[j]] <- gsub("C\\+\\+", "cpp", samp_clean[[j]]) # C++: cpp
+  samp_clean[[j]] <- gsub("C#", "CSharp", samp_clean[[j]]) # C# CSharp
+}
+samp_clean = tm_map(samp_clean, PlainTextDocument)
 samp_clean = tm_map(samp_clean, removePunctuation)
-samp_clean = tm_map(samp_clean, removeNumbers)  
+samp_clean = tm_map(samp_clean, removeNumbers)
 
 # Remove stopwords
-samp_clean = tm_map(samp_clean, removeWords, stopwords("english")) 
+samp_clean = tm_map(samp_clean, removeWords, stopwords("english"))
 
 # Strip white space
 #samp_clean = tm_map(samp_clean, stemDocument) # do not stem for now
-samp_clean = tm_map(samp_clean, stripWhitespace) 
+samp_clean = tm_map(samp_clean, stripWhitespace)
 
 # Tokenize 1 to 4-grams
 xgramTokenizer = function(x) NGramTokenizer(x, Weka_control(min = 1, max = 4))
