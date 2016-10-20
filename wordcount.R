@@ -6,7 +6,6 @@ if (!require('wordcloud')) install.packages('wordcloud')
 if (!require('reshape2')) install.packages('reshape2')
 if (!require('dplyr')) install.packages('dplyr')
 
-
 ### Note - copy scrape output to the directory listed below
 
 samp = Corpus(DirSource("ScrapeOutput"),
@@ -22,8 +21,8 @@ for(j in seq(samp_clean))
 {
   samp_clean[[j]] = iconv(samp_clean[[j]], to="ASCII", sub = "")
   samp_clean[[j]] <- gsub("/|@|\\|", " ", samp_clean[[j]])
-  samp_clean[[j]] <- gsub("(?<!\w)R(?!=\w|&D)", "Rlanguage", samp_clean[[j]]) #R: Rlanguage
-  samp_clean[[j]] <- gsub("(?<!\w)C(?!\w|#|\+)", "Clanguage", samp_clean[[j]]) #C: Clanguage
+  samp_clean[[j]] <- gsub("(?<!\\w)R(?!=\\w|&D)", "Rlanguage", samp_clean[[j]]) #R: Rlanguage
+  samp_clean[[j]] <- gsub("(?<!\\w)C(?!\\w|#|\\+)", "Clanguage", samp_clean[[j]]) #C: Clanguage
   samp_clean[[j]] <- gsub("C\\+\\+", "cpp", samp_clean[[j]]) # C++: cpp
   samp_clean[[j]] <- gsub("C#", "CSharp", samp_clean[[j]]) # C# CSharp
 }
